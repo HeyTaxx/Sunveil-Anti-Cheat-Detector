@@ -12,6 +12,7 @@ scanner/**/bin/
 scanner/**/obj/
 scanner/.vs/
 .vs/
+.claude/
 scanner/**/*.user
 scanner/**/*.suo
 scanner/**/*.db
