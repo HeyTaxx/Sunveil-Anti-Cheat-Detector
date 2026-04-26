@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunveil SMP Scan Report - Blue Style Development</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="index.html" class="navbar-brand">
+            <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <span>CheatDetector</span>
+        </a>
+        <div class="navbar-links">
+            <a href="index.html">Dashboard</a>
+        </div>
+    </nav>
+
+    <main class="container">
+        <a href="index.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <div id="errorState" class="empty-state" style="display: none;">
+            <i class="fa-solid fa-triangle-exclamation empty-icon" style="color: var(--severity-high);"></i>
+            <h2>Report Not Found</h2>
+            <p>The requested scan report could not be found or has been deleted.</p>
+            <a href="index.html" class="back-link" style="margin-top: 2rem;">Return Home</a>
+        </div>
+
+        <div id="reportContent" style="display: none;" class="animate-in">
+            <div class="report-header">
+                <div class="report-id" id="reportId">ACD-XXXX-YYYY</div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h1 class="report-title">Scan Results for <span id="playerName" style="color: var(--primary-color);">Player</span></h1>
+                        <div class="report-meta">
+                            <span><i class="fa-regular fa-clock"></i> <span id="scanTime">2026-04-26 12:00</span></span>
+                            <span><i class="fa-solid fa-stopwatch"></i> <span id="scanDuration">0s</span></span>
+                            <span><i class="fa-solid fa-microscope"></i> <span id="scanMode">Deep Scan</span></span>
+                        </div>
+                    </div>
+                    <div id="verdictBadge" class="verdict-large verdict-clean-bg">CLEAN</div>
+                </div>
+                
+                <div class="risk-meter">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-secondary);">
+                        <span>Risk Level</span>
+                        <span id="riskLabel">Low</span>
+                    </div>
+                    <div class="risk-meter-bar">
+                        <div id="riskFill" class="risk-meter-fill risk-low" style="width: 5%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-header">
+                <h2>System <span>Information</span></h2>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-desktop"></i> Host Details</h3>
+                    <div class="info-row"><span class="label">Hostname</span><span class="value" id="hostname">...</span></div>
+                    <div class="info-row"><span class="label">Username</span><span class="value" id="username">...</span></div>
+                    <div class="info-row"><span class="label">OS Version</span><span class="value" id="osVersion">...</span></div>
+                </div>
+                <div class="info-card">
+                    <h3><i class="fa-solid fa-microchip"></i> Hardware</h3>
+                    <div class="info-row"><span class="label">HWID (Hash)</span><span class="value" id="hwid" style="font-family: monospace;">...</span></div>
+                    <div class="info-row"><span class="label">CPU</span><span class="value" id="cpuName">...</span></div>
+                    <div class="info-row"><span class="label">RAM</span><span class="value" id="ramTotal">...</span></div>
+                </div>
+            </div>
+
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>Detection <span>Flags</span></h2>
+                <div class="badge" style="background: rgba(255,255,255,0.1);" id="totalFlagsCount">0 Flags</div>
+            </div>
+
+            <div id="flagsList" class="flags-list">
+                <!-- Flags will be populated here -->
+            </div>
+            
+            <div id="noFlagsState" class="empty-state" style="display: none; background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--card-border);">
+                <i class="fa-solid fa-check-circle empty-icon" style="color: var(--verdict-clean);"></i>
+                <h3>No Suspicious Activity Detected</h3>
+                <p>The scanner did not find any known cheat signatures on this system.</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Sunveil SMP Anti-Cheat &copy; 2026 | Developed by <a href="https://bluestyle.dev" target="_blank">Blue Style Development</a></p>
+    </footer>
+
+    <script src="js/report.js"></script>
+</body>
+</html>

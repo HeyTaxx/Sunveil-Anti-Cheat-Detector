@@ -1,0 +1,15 @@
+<?php
+// db_config.php.template
+// ==============================================================
+// Rename this file to db_config.php on your production server.
+// DO NOT COMMIT the renamed file to GitHub!
+// ==============================================================
+
+define('DB_HOST', 'localhost');
+define('DB_USER', 'your_database_user');
+define('DB_PASS', 'your_secure_password');
+define('DB_NAME', 'sunveil_anticheat');
+
+// The API key that the C# Client must send in the header (X-API-KEY)
+define('AC_API_KEY', 'CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_32_CHARS');
+?>

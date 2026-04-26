@@ -1,0 +1,51 @@
+# ==========================================
+# Sunveil Webhost Integration
+# ==========================================
+Y:/Sunveil Webhost/config/*
+Y:/Sunveil Webhost/logs/*
+Y:/Sunveil Webhost/.env
+
+# ==========================================
+# C# Scanner (.NET)
+# ==========================================
+scanner/**/bin/
+scanner/**/obj/
+scanner/.vs/
+.vs/
+scanner/**/*.user
+scanner/**/*.suo
+scanner/**/*.db
+scanner/**/*.log
+
+# ==========================================
+# Node.js API (Backend)
+# ==========================================
+api/node_modules/
+api/npm-debug.log
+api/yarn-error.log
+
+# Datenbank & Secrets
+api/cheatdetector.db
+api/cheatdetector.db-wal
+api/cheatdetector.db-shm
+api/cheatdetector_db.json
+api/.env
+
+# ==========================================
+# Frontend & OS
+# ==========================================
+.DS_Store
+Thumbs.db
+
+# ==========================================
+# Forensic Dumps & Reports
+# ==========================================
+reports/
+*.log
+*.mft
+*.usn
+*.dmp
+*.mem
+/scanner/ForensicDumps/
+scanner/**/*.json
+!signatures.json

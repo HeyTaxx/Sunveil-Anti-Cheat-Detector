@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunveil Forensics - Admin Intelligence Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0a0f1a]">
+
+<div class="min-h-screen text-blue-100 p-8 font-sans max-w-7xl mx-auto">
+    <div class="flex justify-between items-center border-b border-blue-900/50 pb-6 mb-8 mt-4">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-blue-400">Sunveil <span class="text-white">Forensics</span></h1>
+            <p class="text-blue-500/70">Admin Intelligence Panel v2.1</p>
+        </div>
+        <div class="bg-blue-900/20 border border-blue-500/30 px-4 py-2 rounded-lg flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+            <span class="text-xs uppercase tracking-widest text-blue-400">System Status: Secure</span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-[#111827]/80 backdrop-blur-md border border-blue-900/50 p-6 rounded-xl shadow-2xl transition hover:border-blue-500/50">
+            <p class="text-sm text-blue-400 uppercase tracking-wider">Total Flags (Last 24h)</p>
+            <p class="text-4xl font-mono mt-2 text-white">128</p>
+        </div>
+        <div class="bg-[#111827]/80 border border-blue-900/50 p-6 rounded-xl transition hover:border-red-500/50">
+            <p class="text-sm text-blue-400 uppercase tracking-wider">Unique HWID Bans</p>
+            <p class="text-4xl font-mono mt-2 text-red-500">12</p>
+        </div>
+        <div class="bg-[#111827]/80 border border-blue-900/50 p-6 rounded-xl transition hover:border-green-500/50">
+            <p class="text-sm text-blue-400 uppercase tracking-wider">Forensic Matches</p>
+            <p class="text-4xl font-mono mt-2 text-green-400">94%</p>
+        </div>
+    </div>
+
+    <div class="bg-[#111827]/80 border border-blue-900/50 rounded-xl overflow-hidden shadow-2xl">
+        <div class="p-5 border-b border-blue-900/50 bg-blue-900/10 flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-white">Erweiterte Nutzer-Analyse (Internal Only)</h2>
+            <button class="text-sm bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded transition">Refresh Data</button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-max">
+                <thead class="bg-blue-950/50 text-blue-400 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="p-4 font-medium">Spieler / HWID</th>
+                        <th class="p-4 font-medium">Detection Source</th>
+                        <th class="p-4 font-medium">Gefundene Artefakte / Class-Leak</th>
+                        <th class="p-4 font-medium">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-blue-900/30">
+                    <tr class="hover:bg-blue-900/10 transition cursor-pointer">
+                        <td class="p-4">
+                            <div class="font-bold text-white">PlayerXYZ</div>
+                            <div class="text-xs text-blue-500 font-mono mt-1">ID: 8821-XA99-LL01</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-block bg-purple-900/30 text-purple-400 px-2 py-1 rounded text-xs border border-purple-800/50 shadow-sm"><i class="fa-solid fa-memory mr-1"></i> RAM Scan</span>
+                            <span class="inline-block bg-yellow-900/30 text-yellow-400 px-2 py-1 rounded text-xs border border-yellow-800/50 shadow-sm ml-2"><i class="fa-solid fa-book-journal-whills mr-1"></i> Registry</span>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-mono text-xs text-blue-300">Class Leak: <span class="text-red-400">meteorclient.systems.modules.Combat</span></div>
+                            <div class="font-mono text-xs text-slate-400 mt-1">Trace: HKCU\..\UserAssist\{Vape_Installer}</div>
+                        </td>
+                        <td class="p-4"><span class="bg-red-500/20 text-red-500 border border-red-500/50 px-3 py-1 rounded-full text-xs font-bold tracking-wide">CONFIRMED</span></td>
+                    </tr>
+                    <tr class="hover:bg-blue-900/10 transition cursor-pointer">
+                        <td class="p-4">
+                            <div class="font-bold text-white">SneakyUser</div>
+                            <div class="text-xs text-blue-500 font-mono mt-1">ID: FF44-CC22-1100</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-block bg-blue-900/30 text-blue-400 px-2 py-1 rounded text-xs border border-blue-800/50 shadow-sm"><i class="fa-solid fa-hard-drive mr-1"></i> Filesystem</span>
+                        </td>
+                        <td class="p-4">
+                            <div class="font-mono text-xs text-blue-300">Hash Match: <span class="text-red-400">Optifine_1.20.jar (Is: Baritone API)</span></div>
+                        </td>
+                        <td class="p-4"><span class="bg-red-500/20 text-red-500 border border-red-500/50 px-3 py-1 rounded-full text-xs font-bold tracking-wide">CONFIRMED</span></td>
+                    </tr>
+                    <tr class="hover:bg-blue-900/10 transition cursor-pointer">
+                        <td class="p-4">
+                            <div class="font-bold text-white">LegitBuilder</div>
+                            <div class="text-xs text-blue-500 font-mono mt-1">ID: 1A2B-3C4D-5E6F</div>
+                        </td>
+                        <td class="p-4">
+                            <span class="inline-block text-slate-500 text-xs italic">No suspicious files</span>
+                        </td>
+                        <td class="p-4 font-mono text-xs text-slate-500">Clean</td>
+                        <td class="p-4"><span class="bg-green-500/20 text-green-500 border border-green-500/50 px-3 py-1 rounded-full text-xs font-bold tracking-wide">CLEAN</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

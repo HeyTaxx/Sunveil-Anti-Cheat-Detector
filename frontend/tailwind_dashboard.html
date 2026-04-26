@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber-Blue Anti-Cheat Dashboard</title>
+    
+    <!-- Tailwind CSS (CDN for demo) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            900: '#060b19', // Deep space background
+                            800: '#0a1128', // Card background
+                            700: '#14213d', // Card border/hover
+                            accent: '#00f0ff', // Neon Cyan
+                            primary: '#0055ff', // Deep Blue
+                        }
+                    },
+                    boxShadow: {
+                        'neon': '0 0 15px rgba(0, 240, 255, 0.3)',
+                        'neon-intense': '0 0 25px rgba(0, 240, 255, 0.6)'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- DOMPurify for XSS Protection when rendering user data -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(10, 17, 40, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 240, 255, 0.1);
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #060b19; }
+        ::-webkit-scrollbar-thumb { background: #14213d; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0055ff; }
+    </style>
+</head>
+<body class="bg-cyber-900 text-gray-200 min-h-screen font-sans selection:bg-cyber-accent selection:text-black">
+
+    <!-- Background Glow Effects -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-1/2 h-1/2 bg-cyber-primary/20 rounded-full blur-[120px]"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-1/2 h-1/2 bg-cyber-accent/10 rounded-full blur-[120px]"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center border-b border-cyber-700">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-primary to-cyber-accent flex items-center justify-center shadow-neon">
+                <i class="fa-solid fa-shield-halved text-black text-xl"></i>
+            </div>
+            <span class="text-xl font-bold tracking-wider text-white">SUNVEIL<span class="text-cyber-accent">.AC</span></span>
+        </div>
+        <div class="hidden md:flex gap-6 text-sm font-medium">
+            <a href="#" class="text-cyber-accent hover:text-white transition-colors drop-shadow-[0_0_8px_rgba(0,240,255,0.5)]">Dashboard</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Detections</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Settings</a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-10">
+        
+        <!-- Hero Search -->
+        <div class="glass rounded-2xl p-8 mb-10 text-center relative overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-cyber-primary/10 to-cyber-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <h1 class="text-4xl font-bold text-white mb-4">Forensic Analysis Hub</h1>
+            <p class="text-gray-400 mb-8 max-w-2xl mx-auto">Enter a report ID to securely view decrypted scan results. All rendered data is sanitized via DOMPurify to prevent XSS attacks.</p>
+            
+            <div class="max-w-xl mx-auto flex gap-3 relative z-10">
+                <input type="text" id="searchInput" placeholder="ACD-2026-XXXX..." 
+                       class="flex-1 bg-cyber-800/80 border border-cyber-700 rounded-lg px-5 py-3 text-white focus:outline-none focus:border-cyber-accent focus:ring-1 focus:ring-cyber-accent transition-all placeholder-gray-500">
+                <button class="bg-cyber-accent hover:bg-white text-black font-bold py-3 px-6 rounded-lg transition-all shadow-neon hover:shadow-neon-intense">
+                    <i class="fa-solid fa-magnifying-glass mr-2"></i> Scan
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <div class="glass rounded-xl p-6 border-t-2 border-t-cyber-accent hover:-translate-y-1 transition-transform">
+                <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Total Scans</div>
+                <div class="text-3xl font-bold text-white">1,204</div>
+            </div>
+            <div class="glass rounded-xl p-6 border-t-2 border-t-green-500 hover:-translate-y-1 transition-transform">
+                <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Clean Rate</div>
+                <div class="text-3xl font-bold text-green-400 drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">82%</div>
+            </div>
+            <div class="glass rounded-xl p-6 border-t-2 border-t-red-500 hover:-translate-y-1 transition-transform">
+                <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Flagged Systems</div>
+                <div class="text-3xl font-bold text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]">216</div>
+            </div>
+            <div class="glass rounded-xl p-6 border-t-2 border-t-cyber-primary hover:-translate-y-1 transition-transform">
+                <div class="text-gray-400 text-sm mb-1 uppercase tracking-wider">Active Threats</div>
+                <div class="text-3xl font-bold text-cyber-primary">14</div>
+            </div>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="glass rounded-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-cyber-700 bg-cyber-800/50 flex justify-between items-center">
+                <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-list text-cyber-accent mr-2"></i> Recent Detections</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-cyber-800/30 text-gray-400 text-sm uppercase tracking-wider">
+                            <th class="px-6 py-4 font-medium">Report ID</th>
+                            <th class="px-6 py-4 font-medium">Player</th>
+                            <th class="px-6 py-4 font-medium">Risk Score</th>
+                            <th class="px-6 py-4 font-medium text-right">Verdict</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-cyber-700">
+                        <tr class="hover:bg-cyber-primary/10 transition-colors cursor-pointer group">
+                            <td class="px-6 py-4 text-cyber-accent font-mono text-sm group-hover:drop-shadow-[0_0_5px_rgba(0,240,255,0.8)]">ACD-2026-A1B2</td>
+                            <td class="px-6 py-4 text-white font-medium" id="safe-player-name-1">Loading...</td>
+                            <td class="px-6 py-4">
+                                <div class="w-24 h-2 bg-cyber-900 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" style="width: 95%"></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-500/20 text-red-400 border border-red-500/30">FLAGGED</span>
+                            </td>
+                        </tr>
+                        <tr class="hover:bg-cyber-primary/10 transition-colors cursor-pointer">
+                            <td class="px-6 py-4 text-cyber-accent font-mono text-sm">ACD-2026-X9Y8</td>
+                            <td class="px-6 py-4 text-white font-medium" id="safe-player-name-2">Loading...</td>
+                            <td class="px-6 py-4">
+                                <div class="w-24 h-2 bg-cyber-900 rounded-full overflow-hidden">
+                                    <div class="h-full bg-green-500" style="width: 5%"></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-500/20 text-green-400 border border-green-500/30">CLEAN</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- XSS Demo Script -->
+    <script>
+        // Simulierte API-Antwort, bei der ein Angreifer versucht hat, XSS über den Spielernamen einzuschleusen
+        const apiResponse = {
+            player1: "MaliciousPlayer <script>alert('XSS Attack!');</sc" + "ript><img src=x onerror=alert('XSS')>",
+            player2: "NormalPlayer"
+        };
+
+        // SICHER: DOMPurify bereinigt das HTML, bevor es in den DOM eingefügt wird
+        document.getElementById('safe-player-name-1').innerHTML = DOMPurify.sanitize(apiResponse.player1);
+        document.getElementById('safe-player-name-2').innerHTML = DOMPurify.sanitize(apiResponse.player2);
+    </script>
+</body>
+</html>

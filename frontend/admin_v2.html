@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sunveil AC - Cyber-Blue 2.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: { 900: '#030712', 800: '#0f172a', border: '#1e293b', accent: '#0ea5e9', alert: '#ef4444', success: '#22c55e' }
+                    },
+                    animation: {
+                        'float': 'float 20s infinite linear',
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slide-in': 'slideIn 0.4s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: { '0%': { transform: 'translateY(0) translateX(0)' }, '100%': { transform: 'translateY(-100px) translateX(50px)' } },
+                        pulseGlow: { '0%, 100%': { opacity: 1, filter: 'drop-shadow(0 0 8px rgba(14,165,233,0.8))' }, '50%': { opacity: .5, filter: 'drop-shadow(0 0 2px rgba(14,165,233,0.3))' } },
+                        slideIn: { '0%': { opacity: 0, transform: 'translateY(10px)' }, '100%': { opacity: 1, transform: 'translateY(0)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: #030712; overflow-x: hidden; }
+        
+        /* Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(30, 41, 59, 0.8);
+        }
+        
+        /* Animated Background Particles */
+        .particle {
+            position: absolute; width: 4px; height: 4px; background: rgba(14, 165, 233, 0.4);
+            border-radius: 50%; pointer-events: none;
+        }
+
+        /* Skeleton Loading */
+        .skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+        }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* Terminal Evidence Box */
+        .evidence-box {
+            display: none;
+            background: #000;
+            border-left: 2px solid #0ea5e9;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .row-expanded .evidence-box { display: block; animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="text-slate-300 font-sans min-h-screen relative">
+
+    <!-- Ambient Background -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden">
+        <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-cyber-accent/10 blur-[120px]"></div>
+        <div id="particles"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-6">
+        
+        <!-- Header & Live Indicator -->
+        <header class="flex justify-between items-center border-b border-cyber-border pb-6 mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white tracking-wider"><i class="fa-solid fa-shield-halved text-cyber-accent mr-3 animate-pulse-glow"></i>Sunveil <span class="text-cyber-accent">Overwatch</span></h1>
+                <p class="text-slate-500 mt-1 text-sm">Cyber-Security Dashboard v2.0</p>
+            </div>
+            <div class="glass px-4 py-2 rounded-full flex items-center gap-3">
+                <div class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyber-success opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-cyber-success"></span>
+                </div>
+                <span class="text-sm font-medium tracking-wide text-white" id="status-text">Awaiting Telemetry...</span>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="glass p-6 rounded-xl hover:border-cyber-accent/50 transition-colors">
+                <p class="text-xs uppercase tracking-widest text-slate-500 mb-2">Active Sessions</p>
+                <div class="skeleton h-8 w-16" id="stat-1"></div>
+            </div>
+            <div class="glass p-6 rounded-xl hover:border-cyber-alert/50 transition-colors">
+                <p class="text-xs uppercase tracking-widest text-slate-500 mb-2">Threats Detected</p>
+                <div class="skeleton h-8 w-16" id="stat-2"></div>
+            </div>
+            <div class="glass p-6 rounded-xl hover:border-cyber-success/50 transition-colors">
+                <p class="text-xs uppercase tracking-widest text-slate-500 mb-2">Integrity Rate</p>
+                <div class="skeleton h-8 w-16" id="stat-3"></div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="glass rounded-xl overflow-hidden shadow-2xl">
+            <div class="bg-cyber-800/80 p-4 border-b border-cyber-border flex justify-between items-center">
+                <h2 class="font-semibold text-white">Forensic Stream</h2>
+                <button onclick="fetchData()" class="text-xs bg-cyber-accent/20 text-cyber-accent hover:bg-cyber-accent hover:text-white border border-cyber-accent/30 px-3 py-1 rounded transition-all"><i class="fa-solid fa-rotate-right mr-1"></i> Sync</button>
+            </div>
+            
+            <table class="w-full text-left text-sm">
+                <thead class="bg-cyber-900/50 text-slate-400 uppercase text-xs tracking-wider">
+                    <tr>
+                        <th class="p-4">Target / HWID</th>
+                        <th class="p-4">Source</th>
+                        <th class="p-4">Match Signature</th>
+                        <th class="p-4 text-center">Integrity</th>
+                        <th class="p-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body" class="divide-y divide-cyber-border">
+                    <!-- Skeletons will be rendered here initially -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Logic -->
+    <script>
+        // Generate Particles
+        const pContainer = document.getElementById('particles');
+        for(let i=0; i<20; i++) {
+            let p = document.createElement('div');
+            p.className = 'particle animate-float';
+            p.style.left = Math.random() * 100 + 'vw';
+            p.style.top = Math.random() * 100 + 'vh';
+            p.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            pContainer.appendChild(p);
+        }
+
+        // Render Skeletons
+        function renderSkeletons() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            for(let i=0; i<3; i++) {
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="p-4"><div class="skeleton h-4 w-24 mb-2"></div><div class="skeleton h-3 w-32"></div></td>
+                        <td class="p-4"><div class="skeleton h-6 w-20 rounded-full"></div></td>
+                        <td class="p-4"><div class="skeleton h-4 w-48"></div></td>
+                        <td class="p-4 flex justify-center"><div class="skeleton h-5 w-16"></div></td>
+                        <td class="p-4 text-right"><div class="skeleton h-8 w-8 ml-auto rounded"></div></td>
+                    </tr>`;
+            }
+        }
+
+        // Toggle Evidence Box
+        function toggleEvidence(id) {
+            const row = document.getElementById(id);
+            row.classList.toggle('row-expanded');
+            const icon = row.querySelector('.expand-icon');
+            icon.style.transform = row.classList.contains('row-expanded') ? 'rotate(180deg)' : 'rotate(0)';
+        }
+
+        // Fetch Data Simulation (Robust Error Handling)
+        async function fetchData() {
+            renderSkeletons();
+            document.getElementById('status-text').innerText = "Syncing Data...";
+            document.getElementById('status-text').classList.add('animate-pulse');
+
+            try {
+                // Fetch real data from the PHP API
+                const req = await fetch('fetch_data.php');
+                if (!req.ok) throw new Error('API Error');
+                
+                const response = await req.json();
+
+                // Update Stats
+                document.getElementById('stat-1').outerHTML = `<p class="text-3xl font-bold text-white animate-slide-in">${response.stats.sessions}</p>`;
+                document.getElementById('stat-2').outerHTML = `<p class="text-3xl font-bold text-cyber-alert animate-slide-in">${response.stats.threats}</p>`;
+                document.getElementById('stat-3').outerHTML = `<p class="text-3xl font-bold text-cyber-success animate-slide-in">${response.stats.integrity}</p>`;
+
+                // Render Rows
+                const tbody = document.getElementById('table-body');
+                tbody.innerHTML = '';
+                
+                response.reports.forEach((rep, index) => {
+                    tbody.innerHTML += `
+                        <tr id="${rep.id}" class="hover:bg-cyber-800/50 transition-colors group" style="animation: slideIn 0.3s ease-out ${index * 0.1}s forwards; opacity: 0;">
+                            <td class="p-4 block sm:table-cell">
+                                <div class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user text-xs text-slate-500"></i> ${rep.player}</div>
+                                <div class="text-xs text-cyber-accent font-mono mt-1 opacity-70 group-hover:opacity-100 transition-opacity">${rep.hwid}</div>
+                            </td>
+                            <td class="p-4">
+                                <span class="bg-cyber-800 border border-cyber-border px-3 py-1 rounded-full text-xs text-slate-300 flex items-center w-fit gap-2">
+                                    <i class="fa-solid ${rep.icon} text-${rep.severity}"></i> ${rep.source}
+                                </span>
+                            </td>
+                            <td class="p-4 font-mono text-xs text-cyber-alert">${rep.signature}</td>
+                            <td class="p-4 text-center">
+                                <span class="text-xs bg-cyber-success/10 text-cyber-success border border-cyber-success/20 px-2 py-1 rounded"><i class="fa-solid fa-check-circle mr-1"></i>${rep.integrity}</span>
+                            </td>
+                            <td class="p-4 text-right">
+                                <button onclick="toggleEvidence('${rep.id}')" class="text-slate-400 hover:text-white transition-transform duration-300 expand-icon"><i class="fa-solid fa-chevron-down"></i></button>
+                            </td>
+                        </tr>
+                        <!-- Evidence Box (Hidden by default) -->
+                        <tr class="bg-black/40">
+                            <td colspan="5" class="p-0">
+                                <div class="evidence-box p-4 m-4 rounded shadow-inner text-xs text-slate-400 relative overflow-hidden">
+                                    <div class="absolute top-0 right-0 bg-cyber-border px-2 py-1 text-[10px] uppercase text-white">Forensic Evidence</div>
+                                    <pre class="whitespace-pre-wrap pt-4 text-green-400">${rep.code}</pre>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                document.getElementById('status-text').innerText = "Live Stream Active";
+                document.getElementById('status-text').classList.remove('animate-pulse');
+
+            } catch (error) {
+                // Robust Error Handling
+                document.getElementById('table-body').innerHTML = `
+                    <tr><td colspan="5" class="p-8 text-center text-cyber-alert">
+                        <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
+                        <p>Connection to Telemetry Server Lost or No Data Available.</p>
+                        <button onclick="fetchData()" class="mt-4 text-xs underline text-slate-400">Retry Connection</button>
+                    </td></tr>`;
+                document.getElementById('status-text').innerText = "Connection Failed";
+                document.getElementById('status-text').classList.remove('animate-pulse');
+            }
+        }
+
+        // Initial Load and Auto-Refresh (Live Data Stream)
+        fetchData();
+        setInterval(fetchData, 30000); // Poll every 30 seconds
+    </script>
+</body>
+</html>
