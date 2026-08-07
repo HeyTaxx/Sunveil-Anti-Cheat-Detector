@@ -45,7 +45,12 @@ if (corsOrigin && corsOrigin !== '*') {
 app.use(express.json({ limit: MAX_BODY_SIZE }));
 
 // Serve frontend static files
-app.use(express.static(path.join(__dirname, '..', 'frontend')));
+// In production (Railway): frontend is copied to ./public during build
+// In development: served from ../frontend sibling directory
+const publicDir = path.join(__dirname, 'public');
+const frontendDir = path.join(__dirname, '..', 'frontend');
+const staticDir = require('fs').existsSync(publicDir) ? publicDir : frontendDir;
+app.use(express.static(staticDir));
 
 // ═══════════════════════════════════════════════
 //  ADMIN SECURITY

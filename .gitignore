@@ -22,6 +22,7 @@ scanner/**/*.log
 # Node.js API (Backend)
 # ==========================================
 api/node_modules/
+api/public/
 api/npm-debug.log
 api/yarn-error.log
 

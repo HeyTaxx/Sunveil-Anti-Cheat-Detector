@@ -4,6 +4,7 @@
   "description": "Minecraft Cheat Detector - Web API & Report Server",
   "main": "server.js",
   "scripts": {
+    "build": "node scripts/copy-frontend.js",
     "start": "node server.js",
     "dev": "node server.js"
   },
