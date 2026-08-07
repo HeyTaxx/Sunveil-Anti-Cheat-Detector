@@ -1,4 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Auth Check
+    const token = sessionStorage.getItem('admin_token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Set up Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        });
+    }
+
+    // Load initial data
     loadStats();
     loadRecentReports();
 
@@ -11,6 +28,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Enter') handleSearch();
     });
 
+    function handleAuthError(res) {
+        if (res.status === 401) {
+            sessionStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+            throw new Error('Session expired or unauthorised access.');
+        }
+        return res;
+    }
+
     function handleSearch() {
         const id = searchInput.value.trim();
         if (!id) return;
@@ -18,7 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
         searchError.style.display = 'none';
         
         // Check if report exists before redirecting
-        fetch(`/api/reports/${id}`)
+        fetch(`/api/reports/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(handleAuthError)
             .then(res => {
                 if (!res.ok) throw new Error('Not found');
                 window.location.href = `report.html?id=${id}`;
@@ -29,7 +58,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadStats() {
-        fetch('/api/stats')
+        fetch('/api/stats', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(handleAuthError)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -43,7 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const statsGrid = document.getElementById('statsGrid');
         statsGrid.innerHTML = `
             <div class="stat-card">
-                <div class="stat-value">${stats.totalScans}</div>
+                <div class="stat-value" style="background: linear-gradient(135deg, #fff, #9ca3af); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">${stats.totalScans}</div>
                 <div class="stat-label">Total Scans</div>
             </div>
             <div class="stat-card">
@@ -55,14 +87,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="stat-label">Flagged Systems</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" style="color: var(--primary-color);">${stats.last24h}</div>
+                <div class="stat-value" style="color: var(--accent-2);">${stats.last24h}</div>
                 <div class="stat-label">Scans (24h)</div>
             </div>
         `;
     }
 
     function loadRecentReports() {
-        fetch('/api/reports?limit=15')
+        fetch('/api/reports?limit=15', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(handleAuthError)
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
@@ -89,18 +124,30 @@ document.addEventListener('DOMContentLoaded', () => {
             if (r.verdict === 'SUSPICIOUS') badgeClass = 'badge-suspicious';
             if (r.verdict === 'FLAGGED') badgeClass = 'badge-flagged';
 
+            const safeId = escapeHtml(r.id);
+            const safeVerdict = escapeHtml(r.verdict);
+
             return `
-                <tr onclick="window.location.href='report.html?id=${r.id}'">
-                    <td><strong>${r.id}</strong></td>
-                    <td>${r.username} <span style="color: var(--text-secondary); font-size: 0.85em;">@${r.hostname}</span></td>
+                <tr onclick="window.location.href='report.html?id=${encodeURIComponent(r.id)}'">
+                    <td><strong>${safeId}</strong></td>
+                    <td>${escapeHtml(r.username)} <span style="color: var(--text-secondary); font-size: 0.85em;">@${escapeHtml(r.hostname)}</span></td>
                     <td style="color: var(--text-secondary);">${date}</td>
                     <td>
-                        <span style="color: var(--severity-high); margin-right: 8px;"><i class="fa-solid fa-flag"></i> ${r.high_count}</span>
-                        <span style="color: var(--severity-medium);"><i class="fa-solid fa-flag"></i> ${r.medium_count}</span>
+                        <span style="color: var(--severity-high); margin-right: 12px; font-weight: 500;"><i class="fa-solid fa-flag"></i> ${parseInt(r.high_count) || 0}</span>
+                        <span style="color: var(--severity-medium); font-weight: 500;"><i class="fa-solid fa-flag"></i> ${parseInt(r.medium_count) || 0}</span>
                     </td>
-                    <td><span class="badge ${badgeClass}">${r.verdict}</span></td>
+                    <td><span class="badge ${badgeClass}">${safeVerdict}</span></td>
                 </tr>
             `;
         }).join('');
+    }
+
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
     }
 });

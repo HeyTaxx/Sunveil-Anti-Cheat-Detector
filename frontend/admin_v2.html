@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sunveil AC - Cyber-Blue 2.0</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' https://cdnjs.cloudflare.com; connect-src 'self'; img-src 'self' data:;">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -144,6 +145,16 @@
             pContainer.appendChild(p);
         }
 
+        // HTML Sanitization
+        function escapeHtml(unsafe) {
+            return (unsafe || '').toString()
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
         // Render Skeletons
         function renderSkeletons() {
             const tbody = document.getElementById('table-body');
@@ -192,22 +203,22 @@
                 
                 response.reports.forEach((rep, index) => {
                     tbody.innerHTML += `
-                        <tr id="${rep.id}" class="hover:bg-cyber-800/50 transition-colors group" style="animation: slideIn 0.3s ease-out ${index * 0.1}s forwards; opacity: 0;">
+                        <tr id="${escapeHtml(rep.id)}" class="hover:bg-cyber-800/50 transition-colors group" style="animation: slideIn 0.3s ease-out ${index * 0.1}s forwards; opacity: 0;">
                             <td class="p-4 block sm:table-cell">
-                                <div class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user text-xs text-slate-500"></i> ${rep.player}</div>
-                                <div class="text-xs text-cyber-accent font-mono mt-1 opacity-70 group-hover:opacity-100 transition-opacity">${rep.hwid}</div>
+                                <div class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-user text-xs text-slate-500"></i> ${escapeHtml(rep.player)}</div>
+                                <div class="text-xs text-cyber-accent font-mono mt-1 opacity-70 group-hover:opacity-100 transition-opacity">${escapeHtml(rep.hwid)}</div>
                             </td>
                             <td class="p-4">
                                 <span class="bg-cyber-800 border border-cyber-border px-3 py-1 rounded-full text-xs text-slate-300 flex items-center w-fit gap-2">
-                                    <i class="fa-solid ${rep.icon} text-${rep.severity}"></i> ${rep.source}
+                                    <i class="fa-solid ${escapeHtml(rep.icon)} text-${escapeHtml(rep.severity)}"></i> ${escapeHtml(rep.source)}
                                 </span>
                             </td>
-                            <td class="p-4 font-mono text-xs text-cyber-alert">${rep.signature}</td>
+                            <td class="p-4 font-mono text-xs text-cyber-alert">${escapeHtml(rep.signature)}</td>
                             <td class="p-4 text-center">
-                                <span class="text-xs bg-cyber-success/10 text-cyber-success border border-cyber-success/20 px-2 py-1 rounded"><i class="fa-solid fa-check-circle mr-1"></i>${rep.integrity}</span>
+                                <span class="text-xs bg-cyber-success/10 text-cyber-success border border-cyber-success/20 px-2 py-1 rounded"><i class="fa-solid fa-check-circle mr-1"></i>${escapeHtml(rep.integrity)}</span>
                             </td>
                             <td class="p-4 text-right">
-                                <button onclick="toggleEvidence('${rep.id}')" class="text-slate-400 hover:text-white transition-transform duration-300 expand-icon"><i class="fa-solid fa-chevron-down"></i></button>
+                                <button onclick="toggleEvidence('${escapeHtml(rep.id)}')" class="text-slate-400 hover:text-white transition-transform duration-300 expand-icon"><i class="fa-solid fa-chevron-down"></i></button>
                             </td>
                         </tr>
                         <!-- Evidence Box (Hidden by default) -->
@@ -215,7 +226,7 @@
                             <td colspan="5" class="p-0">
                                 <div class="evidence-box p-4 m-4 rounded shadow-inner text-xs text-slate-400 relative overflow-hidden">
                                     <div class="absolute top-0 right-0 bg-cyber-border px-2 py-1 text-[10px] uppercase text-white">Forensic Evidence</div>
-                                    <pre class="whitespace-pre-wrap pt-4 text-green-400">${rep.code}</pre>
+                                    <pre class="whitespace-pre-wrap pt-4 text-green-400">${escapeHtml(rep.code)}</pre>
                                 </div>
                             </td>
                         </tr>

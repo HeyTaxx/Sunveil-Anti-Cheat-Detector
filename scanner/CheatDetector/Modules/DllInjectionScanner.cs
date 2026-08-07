@@ -1,3 +1,4 @@
+using System.IO;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using CheatDetector.Models;
@@ -13,108 +14,66 @@ public class DllInjectionScanner
 {
     private const string ModuleName = "DllInjectionScanner";
 
-    [DllImport("psapi.dll", SetLastError = true)]
-    private static extern bool EnumProcessModulesEx(
-        IntPtr hProcess, IntPtr[] lphModule, int cb, out int lpcbNeeded, uint dwFilterFlag);
-
-    [DllImport("psapi.dll", CharSet = CharSet.Unicode)]
-    private static extern uint GetModuleFileNameExW(
-        IntPtr hProcess, IntPtr hModule, char[] lpFilename, int nSize);
-
-    private const uint LIST_MODULES_ALL = 0x03;
-
-    public List<Flag> Scan()
+    public List<Flag> Scan(Action<string>? onItemScanned = null)
     {
         var flags = new List<Flag>();
         Console.WriteLine("  [*] Scanning for injected DLLs in Java processes...");
+
         try
         {
-            var javaProcs = Process.GetProcesses()
-                .Where(p => p.ProcessName.Equals("javaw", StringComparison.OrdinalIgnoreCase) ||
-                            p.ProcessName.Equals("java", StringComparison.OrdinalIgnoreCase))
+            var javaProcesses = Process.GetProcessesByName("java")
+                .Concat(Process.GetProcessesByName("javaw"))
+                .Concat(Process.GetProcessesByName("minecraft"))
                 .ToList();
 
-            if (javaProcs.Count == 0)
-            {
-                Console.WriteLine("  [*] No Java processes found for DLL scan.");
-                return flags;
-            }
-
-            foreach (var proc in javaProcs)
+            foreach (var proc in javaProcesses)
             {
                 try
                 {
-                    Console.WriteLine($"  [*] Checking modules in PID {proc.Id}...");
-                    var modules = GetProcessModules(proc);
-
-                    foreach (string modulePath in modules)
-                    {
-                        string moduleName = Path.GetFileName(modulePath).ToLowerInvariant();
-
-                        // Check if module is whitelisted
-                        bool isWhitelisted = CheatSignatures.JavaWhitelistDlls
-                            .Any(w => moduleName.Contains(w.ToLowerInvariant()));
-
-                        if (!isWhitelisted)
-                        {
-                            // Check against suspicious DLL patterns
-                            foreach (string pattern in CheatSignatures.SuspiciousDllPatterns)
-                            {
-                                if (moduleName.Contains(pattern.ToLowerInvariant()))
-                                {
-                                    flags.Add(new Flag
-                                    {
-                                        Module = ModuleName, Severity = Severity.High,
-                                        Title = "Suspicious DLL Injection Detected",
-                                        Description = $"Module '{moduleName}' in Java process (PID {proc.Id}) matches suspicious pattern '{pattern}'.",
-                                        Evidence = $"Full Path: {modulePath}"
-                                    });
-                                }
-                            }
-                        }
-                    }
+                    onItemScanned?.Invoke($"Scanning loaded DLL modules for PID {proc.Id} ({proc.ProcessName})");
+                    ScanProcessModules(proc, flags, onItemScanned);
                 }
-                catch (Exception ex) { Console.WriteLine($"  [!] DLL scan for PID {proc.Id}: {ex.Message}"); }
+                catch { }
                 finally { proc.Dispose(); }
             }
         }
-        catch (Exception ex) { Console.WriteLine($"  [!] DLL injection scan error: {ex.Message}"); }
+        catch { }
+
         return flags;
     }
 
-    private List<string> GetProcessModules(Process proc)
+    private void ScanProcessModules(Process proc, List<Flag> flags, Action<string>? onItemScanned)
     {
-        var modules = new List<string>();
         try
         {
-            // Try managed API first
-            foreach (ProcessModule mod in proc.Modules)
+            foreach (ProcessModule module in proc.Modules)
             {
-                if (!string.IsNullOrEmpty(mod.FileName))
-                    modules.Add(mod.FileName);
-            }
-        }
-        catch
-        {
-            // Fallback to P/Invoke for 64-bit processes
-            try
-            {
-                IntPtr handle = proc.Handle;
-                IntPtr[] moduleHandles = new IntPtr[1024];
-                if (EnumProcessModulesEx(handle, moduleHandles, moduleHandles.Length * IntPtr.Size,
-                    out int needed, LIST_MODULES_ALL))
+                string modName = module.ModuleName?.ToLowerInvariant() ?? "";
+                string modPath = module.FileName?.ToLowerInvariant() ?? "";
+
+                onItemScanned?.Invoke($"Loaded DLL: {modName} in PID {proc.Id}");
+
+                bool isWhitelisted = CheatSignatures.JavaWhitelistDlls
+                    .Any(w => modName.Contains(w.ToLowerInvariant()) || modPath.Contains(w.ToLowerInvariant()));
+
+                if (isWhitelisted) continue;
+
+                foreach (string pattern in CheatSignatures.SuspiciousDllPatterns)
                 {
-                    int count = needed / IntPtr.Size;
-                    char[] nameBuffer = new char[1024];
-                    for (int i = 0; i < count; i++)
+                    if (modName.Contains(pattern) || modPath.Contains(pattern))
                     {
-                        uint len = GetModuleFileNameExW(handle, moduleHandles[i], nameBuffer, nameBuffer.Length);
-                        if (len > 0) modules.Add(new string(nameBuffer, 0, (int)len));
+                        flags.Add(new Flag
+                        {
+                            Module = ModuleName,
+                            Severity = Severity.High,
+                            Title = "Suspicious Injected DLL Module Detected",
+                            Description = $"Java process PID {proc.Id} has non-standard DLL module '{module.ModuleName}' loaded.",
+                            Evidence = $"PID: {proc.Id}, Module: {module.ModuleName}, Path: {module.FileName}, Pattern: '{pattern}'"
+                        });
                     }
                 }
             }
-            catch { /* Cannot access modules */ }
         }
-        return modules;
+        catch { }
     }
 }

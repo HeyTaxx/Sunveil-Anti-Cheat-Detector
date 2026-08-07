@@ -1,3 +1,5 @@
+using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using CheatDetector.Models;
 
@@ -35,6 +37,8 @@ public static class ReportGenerator
         }
         await File.WriteAllTextAsync(outputPath, json);
         Console.WriteLine($"  [*] Report saved to: {outputPath}");
+    }
+
     /// <summary>
     /// Uploads the scan result to the Sunveil Webhost PHP API.
     /// </summary>

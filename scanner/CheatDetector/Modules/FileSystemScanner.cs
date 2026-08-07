@@ -1,3 +1,4 @@
+using System.IO;
 using System.IO.Compression;
 using CheatDetector.Models;
 using CheatDetector.Data;
@@ -12,7 +13,7 @@ public class FileSystemScanner
 {
     private const string ModuleName = "FileSystemScanner";
 
-    public List<Flag> Scan()
+    public List<Flag> Scan(Action<string>? onItemScanned = null)
     {
         var flags = new List<Flag>();
 
@@ -20,13 +21,14 @@ public class FileSystemScanner
         var instanceDirs = FindMinecraftInstances();
         foreach (var dir in instanceDirs)
         {
-            ScanMinecraftDirectory(dir, flags);
+            onItemScanned?.Invoke($"Scanning instance: {dir}");
+            ScanMinecraftDirectory(dir, flags, onItemScanned);
         }
 
-        ScanTempDirectories(flags);
-        ScanDownloadsDirectory(flags);
-        ScanRecycleBin(flags);
-        ScanEntirePC(flags);
+        ScanTempDirectories(flags, onItemScanned);
+        ScanDownloadsDirectory(flags, onItemScanned);
+        ScanRecycleBin(flags, onItemScanned);
+        ScanEntirePC(flags, onItemScanned);
 
         return flags;
     }
@@ -35,7 +37,6 @@ public class FileSystemScanner
     {
         var dirs = new List<string>();
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
         // Vanilla
@@ -65,25 +66,23 @@ public class FileSystemScanner
         return dirs;
     }
 
-    private void ScanMinecraftDirectory(string mcDir, List<Flag> flags)
+    private void ScanMinecraftDirectory(string mcDir, List<Flag> flags, Action<string>? onItemScanned)
     {
         if (!Directory.Exists(mcDir)) return;
-
-        Console.WriteLine($"  [*] Scanning {mcDir}...");
 
         foreach (string relPath in CheatSignatures.SuspiciousMinecraftPaths)
         {
             string fullPath = Path.Combine(mcDir, relPath);
+            onItemScanned?.Invoke($"Inspecting path: {fullPath}");
             bool exists = Directory.Exists(fullPath) || File.Exists(fullPath);
 
             if (exists)
             {
-                string cheatMatch = relPath.Split('\\').Last().ToLowerInvariant();
                 flags.Add(new Flag
                 {
                     Module = ModuleName, Severity = Severity.High,
                     Title = "Cheat Client Files Found",
-                    Description = $"Suspicious path '{relPath}' exists in .minecraft directory.",
+                    Description = $"Suspicious path '{relPath}' exists in Minecraft directory.",
                     Evidence = $"Full Path: {fullPath}, Exists: true"
                 });
             }
@@ -97,8 +96,9 @@ public class FileSystemScanner
             {
                 foreach (var jar in Directory.GetFiles(modsDir, "*.jar", SearchOption.TopDirectoryOnly))
                 {
+                    onItemScanned?.Invoke($"Scanning JAR: {Path.GetFileName(jar)}");
                     string jarName = Path.GetFileName(jar).ToLowerInvariant();
-                    // 1. Check File Name
+
                     foreach (string cheat in CheatSignatures.KnownClients)
                     {
                         if (jarName.Contains(cheat))
@@ -113,7 +113,7 @@ public class FileSystemScanner
                         }
                     }
 
-                    // 2. Deep Package Scan inside JAR — detect cheat classes by Java package path
+                    // Deep Package Scan inside JAR
                     try
                     {
                         using var zip = ZipFile.OpenRead(jar);
@@ -123,7 +123,6 @@ public class FileSystemScanner
                         {
                             string entryLower = entry.FullName.ToLowerInvariant();
 
-                            // Package scan: check .class entry paths against known cheat packages
                             if (entryLower.EndsWith(".class"))
                             {
                                 foreach (var sig in CheatSignatures.JarPackageSignatures)
@@ -146,7 +145,6 @@ public class FileSystemScanner
                                 }
                             }
 
-                            // Mixin config scan: cheat clients embed *.mixins.json
                             if (entryLower.EndsWith(".mixins.json"))
                             {
                                 string mixinKey = "mixin:" + entryLower;
@@ -173,13 +171,13 @@ public class FileSystemScanner
                             }
                         }
                     }
-                    catch { /* Ignore if file is locked or not a valid ZIP */ }
+                    catch { /* Ignore invalid zip */ }
                 }
             }
-            catch (Exception ex) { Console.WriteLine($"  [!] Mods scan error: {ex.Message}"); }
+            catch { }
         }
 
-        // Check resourcepacks folder for X-Ray
+        // Check resourcepacks folder
         string resourcePacksDir = Path.Combine(mcDir, "resourcepacks");
         if (Directory.Exists(resourcePacksDir))
         {
@@ -188,6 +186,7 @@ public class FileSystemScanner
                 var entries = Directory.GetFileSystemEntries(resourcePacksDir, "*", SearchOption.TopDirectoryOnly);
                 foreach (var entry in entries)
                 {
+                    onItemScanned?.Invoke($"Scanning Resource Pack: {Path.GetFileName(entry)}");
                     string entryName = Path.GetFileName(entry).ToLowerInvariant();
                     foreach (string xraySig in CheatSignatures.IllegalResourcePacks)
                     {
@@ -204,10 +203,10 @@ public class FileSystemScanner
                     }
                 }
             }
-            catch (Exception ex) { Console.WriteLine($"  [!] Resource pack scan error: {ex.Message}"); }
+            catch { }
         }
 
-        // Check versions folder for cheat client versions
+        // Check versions folder
         string versionsDir = Path.Combine(mcDir, "versions");
         if (Directory.Exists(versionsDir))
         {
@@ -215,6 +214,7 @@ public class FileSystemScanner
             {
                 foreach (var dir in Directory.GetDirectories(versionsDir))
                 {
+                    onItemScanned?.Invoke($"Scanning Version: {Path.GetFileName(dir)}");
                     string dirName = Path.GetFileName(dir).ToLowerInvariant();
                     foreach (string cheat in CheatSignatures.KnownClients)
                     {
@@ -231,11 +231,11 @@ public class FileSystemScanner
                     }
                 }
             }
-            catch (Exception ex) { Console.WriteLine($"  [!] Versions scan error: {ex.Message}"); }
+            catch { }
         }
     }
 
-    private void ScanTempDirectories(List<Flag> flags)
+    private void ScanTempDirectories(List<Flag> flags, Action<string>? onItemScanned)
     {
         string[] tempPaths = {
             Environment.GetEnvironmentVariable("TEMP") ?? "",
@@ -244,12 +244,13 @@ public class FileSystemScanner
 
         foreach (string tempPath in tempPaths.Where(p => !string.IsNullOrEmpty(p) && Directory.Exists(p)))
         {
-            Console.WriteLine($"  [*] Scanning {tempPath}...");
+            onItemScanned?.Invoke($"Scanning Temp directory: {tempPath}");
             try
             {
                 var entries = Directory.GetFileSystemEntries(tempPath, "*", SearchOption.TopDirectoryOnly);
                 foreach (var entry in entries)
                 {
+                    onItemScanned?.Invoke($"Temp entry: {Path.GetFileName(entry)}");
                     string name = Path.GetFileName(entry).ToLowerInvariant();
                     foreach (string cheat in CheatSignatures.KnownClients)
                     {
@@ -266,23 +267,24 @@ public class FileSystemScanner
                     }
                 }
             }
-            catch { /* Access errors in temp are common */ }
+            catch { }
         }
     }
 
-    private void ScanDownloadsDirectory(List<Flag> flags)
+    private void ScanDownloadsDirectory(List<Flag> flags, Action<string>? onItemScanned)
     {
         string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         string downloadsPath = Path.Combine(userProfile, "Downloads");
 
         if (!Directory.Exists(downloadsPath)) return;
 
-        Console.WriteLine($"  [*] Scanning {downloadsPath}...");
+        onItemScanned?.Invoke($"Scanning Downloads directory: {downloadsPath}");
         try
         {
             var entries = Directory.GetFileSystemEntries(downloadsPath, "*", SearchOption.TopDirectoryOnly);
             foreach (var entry in entries)
             {
+                onItemScanned?.Invoke($"Download file: {Path.GetFileName(entry)}");
                 string name = Path.GetFileName(entry).ToLowerInvariant();
                 foreach (string cheat in CheatSignatures.KnownClients)
                 {
@@ -295,17 +297,16 @@ public class FileSystemScanner
                             Description = $"Download entry '{Path.GetFileName(entry)}' matches '{cheat}'.",
                             Evidence = $"Path: {entry}"
                         });
-                        // Don't break here, so we log all matches if multiple keywords match
                     }
                 }
             }
         }
-        catch { /* Ignore access errors */ }
+        catch { }
     }
 
-    private void ScanRecycleBin(List<Flag> flags)
+    private void ScanRecycleBin(List<Flag> flags, Action<string>? onItemScanned)
     {
-        Console.WriteLine("  [*] Scanning Recycle Bin...");
+        onItemScanned?.Invoke("Scanning Recycle Bin ($Recycle.Bin)...");
         try
         {
             string recyclePath = Path.Combine(Path.GetPathRoot(Environment.SystemDirectory)!, "$Recycle.Bin");
@@ -317,6 +318,7 @@ public class FileSystemScanner
                 {
                     foreach (var file in Directory.GetFiles(userDir, "*", SearchOption.TopDirectoryOnly))
                     {
+                        onItemScanned?.Invoke($"Recycle Bin entry: {Path.GetFileName(file)}");
                         string fileName = Path.GetFileName(file).ToLowerInvariant();
                         foreach (string cheat in CheatSignatures.KnownClients)
                         {
@@ -333,15 +335,15 @@ public class FileSystemScanner
                         }
                     }
                 }
-                catch { /* SID directories often deny access */ }
+                catch { }
             }
         }
-        catch (Exception ex) { Console.WriteLine($"  [!] Recycle Bin scan error: {ex.Message}"); }
+        catch { }
     }
 
-    private void ScanEntirePC(List<Flag> flags)
+    private void ScanEntirePC(List<Flag> flags, Action<string>? onItemScanned)
     {
-        Console.WriteLine("  [*] Performing Deep Full-PC Scan (This may take a moment)...");
+        onItemScanned?.Invoke("Performing Full Drive Forensic Search...");
         
         var enumOptions = new EnumerationOptions
         {
@@ -352,11 +354,9 @@ public class FileSystemScanner
 
         foreach (var drive in DriveInfo.GetDrives().Where(d => d.IsReady && d.DriveType == DriveType.Fixed))
         {
-            Console.WriteLine($"      -> Scanning Drive {drive.Name}");
+            onItemScanned?.Invoke($"Scanning Drive {drive.Name}...");
             try
             {
-                // We primarily look for .jar and .zip files across the whole PC to save time.
-                // Searching EVERY file extension would be extremely slow.
                 string[] targetExtensions = { "*.jar", "*.zip", "*.exe" };
 
                 foreach (string ext in targetExtensions)
@@ -364,21 +364,20 @@ public class FileSystemScanner
                     var files = Directory.EnumerateFiles(drive.RootDirectory.Name, ext, enumOptions);
                     foreach (var file in files)
                     {
-                        // Skip Windows folder to save time and avoid false positives
                         if (file.StartsWith(Path.Combine(drive.Name, "Windows"), StringComparison.OrdinalIgnoreCase))
                             continue;
 
+                        onItemScanned?.Invoke($"Drive file: {file}");
                         string fileName = Path.GetFileName(file).ToLowerInvariant();
                         foreach (string cheat in CheatSignatures.KnownClients)
                         {
-                            // If a file anywhere on the PC is named something like "meteor-client.jar"
                             if (fileName.Contains(cheat))
                             {
                                 flags.Add(new Flag
                                 {
                                     Module = ModuleName, Severity = Severity.High,
                                     Title = "Cheat File Found on System",
-                                    Description = $"A file matching '{cheat}' was found hidden on the PC.",
+                                    Description = $"A file matching '{cheat}' was found on the system.",
                                     Evidence = $"Path: {file}"
                                 });
                             }
@@ -386,10 +385,7 @@ public class FileSystemScanner
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"      [!] Error scanning drive {drive.Name}: {ex.Message}");
-            }
+            catch { }
         }
     }
 }

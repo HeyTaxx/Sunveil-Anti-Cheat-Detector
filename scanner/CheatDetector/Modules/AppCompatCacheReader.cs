@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Win32;
 using CheatDetector.Models;
 using CheatDetector.Data;
@@ -6,99 +7,90 @@ namespace CheatDetector.Modules;
 
 /// <summary>
 /// Reads AppCompatCache (ShimCache) from the SYSTEM registry hive to detect
-/// previously executed cheat applications. Entries are written on shutdown.
+/// previously executed cheat applications.
 /// </summary>
 public class AppCompatCacheReader
 {
     private const string ModuleName = "AppCompatCacheReader";
-    private const string CachePath = @"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache";
 
-    public List<Flag> Scan()
+    public List<Flag> Scan(Action<string>? onItemScanned = null)
     {
         var flags = new List<Flag>();
         Console.WriteLine("  [*] Reading AppCompatCache (ShimCache)...");
+
         try
         {
-            using var key = Registry.LocalMachine.OpenSubKey(CachePath);
-            if (key == null)
+            using var hklm = Registry.LocalMachine;
+            using var shimKey = hklm.OpenSubKey(@"SYSTEM\CurrentControlSet\Control\Session Manager\AppCompatCache");
+            if (shimKey == null) return flags;
+
+            byte[]? cacheData = shimKey.GetValue("AppCompatCache") as byte[];
+            if (cacheData == null || cacheData.Length == 0) return flags;
+
+            var paths = ExtractUnicodeStrings(cacheData);
+
+            foreach (string rawPath in paths)
             {
-                Console.WriteLine("  [!] AppCompatCache key not found.");
-                return flags;
-            }
-            byte[]? cacheData = key.GetValue("AppCompatCache") as byte[];
-            if (cacheData == null || cacheData.Length < 100)
-            {
-                Console.WriteLine("  [!] AppCompatCache data is empty or too small.");
-                return flags;
-            }
-            // Extract readable strings from the binary cache data
-            var paths = ExtractUnicodeStrings(cacheData, minLength: 6);
-            Console.WriteLine($"  [*] Extracted {paths.Count} path strings from ShimCache.");
-            foreach (string path in paths)
-            {
-                string lowerPath = path.ToLowerInvariant();
+                onItemScanned?.Invoke($"ShimCache entry: {rawPath}");
+                string lowerPath = rawPath.ToLowerInvariant();
                 foreach (string cheat in CheatSignatures.KnownClients)
                 {
                     if (lowerPath.Contains(cheat))
                     {
                         flags.Add(new Flag
                         {
-                            Module = ModuleName, Severity = Severity.Medium,
-                            Title = "Cheat Client in AppCompatCache",
-                            Description = $"ShimCache entry contains path matching '{cheat}'. This indicates past execution.",
-                            Evidence = $"Path: {path}, Match: '{cheat}'"
-                        });
-                    }
-                }
-                string[] susTools = { "cheatengine", "processhacker", "x64dbg", "injector" };
-                foreach (string tool in susTools)
-                {
-                    if (lowerPath.Contains(tool))
-                    {
-                        flags.Add(new Flag
-                        {
-                            Module = ModuleName, Severity = Severity.Medium,
-                            Title = "Suspicious Tool in AppCompatCache",
-                            Description = $"ShimCache contains path matching '{tool}'.",
-                            Evidence = $"Path: {path}"
+                            Module = ModuleName,
+                            Severity = Severity.Medium,
+                            Title = "Cheat Execution Trace in AppCompatCache (ShimCache)",
+                            Description = $"ShimCache entry '{rawPath}' matches known cheat client '{cheat}'.",
+                            Evidence = $"Path: {rawPath}, Match: '{cheat}'"
                         });
                     }
                 }
             }
         }
-        catch (Exception ex) { Console.WriteLine($"  [!] AppCompatCache error: {ex.Message}"); }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  [!] AppCompatCache error: {ex.Message}");
+        }
+
         return flags;
     }
 
-    /// <summary>
-    /// Extracts Unicode strings from binary data (simplified parser for path extraction).
-    /// </summary>
-    private static List<string> ExtractUnicodeStrings(byte[] data, int minLength)
+    private static List<string> ExtractUnicodeStrings(byte[] data)
     {
-        var results = new List<string>();
-        var current = new List<char>();
+        var strings = new List<string>();
+        int minLength = 6;
+
         for (int i = 0; i < data.Length - 1; i += 2)
         {
-            char c = (char)(data[i] | (data[i + 1] << 8));
-            if (c >= 0x20 && c < 0x7F)
+            if (data[i] >= 32 && data[i] <= 126 && data[i + 1] == 0)
             {
-                current.Add(c);
-            }
-            else
-            {
-                if (current.Count >= minLength)
+                int start = i;
+                int len = 0;
+
+                while (i < data.Length - 1 && data[i] >= 32 && data[i] <= 126 && data[i + 1] == 0)
                 {
-                    string s = new string(current.ToArray());
-                    if (s.Contains('\\') || s.Contains('/')) results.Add(s);
+                    len++;
+                    i += 2;
                 }
-                current.Clear();
+
+                if (len >= minLength)
+                {
+                    char[] chars = new char[len];
+                    for (int j = 0; j < len; j++)
+                    {
+                        chars[j] = (char)data[start + j * 2];
+                    }
+                    string str = new string(chars);
+                    if (str.Contains('\\') || str.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
+                    {
+                        strings.Add(str);
+                    }
+                }
             }
         }
-        if (current.Count >= minLength)
-        {
-            string s = new string(current.ToArray());
-            if (s.Contains('\\') || s.Contains('/')) results.Add(s);
-        }
-        return results.Distinct().ToList();
+
+        return strings;
     }
 }

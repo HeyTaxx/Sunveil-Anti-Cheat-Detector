@@ -3,60 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minecraft Cheat Detector</title>
+    <title>Overwatch — Sunveil Anti-Cheat</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self'; img-src 'self' data:;">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+    <div class="fixed-background"></div>
+    <div class="background-overlay"></div>
+
     <nav class="navbar">
         <a href="index.html" class="navbar-brand">
             <div class="logo-icon"><i class="fa-solid fa-shield-halved"></i></div>
-            <span>CheatDetector</span>
+            <span>SUNVEIL <strong>OVERWATCH</strong></span>
         </a>
         <div class="navbar-links">
-            <a href="index.html">Dashboard</a>
-            <a href="https://bluestyle.dev" target="_blank">By BlueStyle.dev</a>
+            <a href="index.html" style="color: var(--text-primary); font-weight: 600;"><i class="fa-solid fa-gauge mr-1"></i> Dashboard</a>
+            <a href="https://bluestyle.dev" target="_blank"><i class="fa-solid fa-code mr-1"></i> Developer</a>
+            <button id="logoutBtn" class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
         </div>
     </nav>
 
     <main class="container">
         <section class="hero">
-            <h1>Sunveil SMP Anti-Cheat</h1>
-            <p>Advanced forensic PC analysis tool, custom-built by <strong>Blue Style Development</strong> for the <strong>Sunveil SMP</strong> server. Detects ghost clients, injected DLLs, and hidden modifications.</p>
+            <h1>Sunveil SMP <span class="text-gradient">Anti-Cheat</span></h1>
+            <p>Advanced forensic PC analysis console, custom-built by <strong>Blue Style Development</strong> for the <strong>Sunveil SMP</strong> server. Scans for ghost clients, injected DLLs, and hidden execution artifacts.</p>
             
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Enter Report ID (e.g. ACD-2026-XYZ123)..." autocomplete="off">
-                <button id="searchBtn"><i class="fa-solid fa-search"></i> Find Report</button>
+                <input type="text" id="searchInput" placeholder="Search Report ID (e.g. ACD-2026-XYZ)..." autocomplete="off">
+                <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i> Search</button>
             </div>
-            <div id="searchError" style="color: var(--severity-high); margin-top: 1rem; display: none;">Report not found. Please check the ID and try again.</div>
+            <div id="searchError" style="color: var(--severity-high); margin-top: 1rem; display: none; font-weight: 500;">
+                <i class="fa-solid fa-circle-exclamation"></i> Telemetry report not found. Verify the ID and try again.
+            </div>
         </section>
 
         <section class="stats-grid" id="statsGrid">
             <!-- Stats will be loaded here via JS -->
             <div class="stat-card">
-                <div class="stat-label">Loading stats...</div>
+                <div class="stat-label">Initialising telemetry...</div>
             </div>
         </section>
 
         <section class="recent-reports animate-in">
             <div class="section-header">
-                <h2>Recent <span>Scans</span></h2>
+                <h2>Recent <span class="text-gradient">Scans</span></h2>
             </div>
             
-            <div class="report-header" style="padding: 0; background: transparent; border: none; backdrop-filter: none;">
+            <div class="glass" style="padding: 1.5rem; overflow-x: auto; background: rgba(15, 15, 23, 0.45);">
                 <table class="reports-table">
                     <thead>
                         <tr>
                             <th>Report ID</th>
-                            <th>Player / Host</th>
-                            <th>Time</th>
-                            <th>Flags</th>
+                            <th>Player / Hostname</th>
+                            <th>Timestamp</th>
+                            <th>Flag Activity</th>
                             <th>Verdict</th>
                         </tr>
                     </thead>
                     <tbody id="reportsList">
                         <!-- Reports will be populated here -->
-                        <tr><td colspan="5" class="empty-state">Loading recent reports...</td></tr>
+                        <tr><td colspan="5" class="empty-state">Loading recent telemetry data stream...</td></tr>
                     </tbody>
                 </table>
             </div>

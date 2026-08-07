@@ -31,6 +31,7 @@ api/cheatdetector.db-wal
 api/cheatdetector.db-shm
 api/cheatdetector_db.json
 api/.env
+api_php/db_config.php
 
 # ==========================================
 # Frontend & OS
@@ -42,6 +43,7 @@ Thumbs.db
 # Forensic Dumps & Reports
 # ==========================================
 reports/
+report_*.json
 *.log
 *.mft
 *.usn
@@ -50,3 +52,9 @@ reports/
 /scanner/ForensicDumps/
 scanner/**/*.json
 !signatures.json
+
+# ==========================================
+# AI / Agent directories
+# ==========================================
+.agents/
+

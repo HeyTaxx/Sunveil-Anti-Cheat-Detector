@@ -1,3 +1,4 @@
+using System.IO;
 using CheatDetector.Models;
 using CheatDetector.Data;
 
@@ -13,10 +14,7 @@ public class PrefetchAnalyzer
     private static readonly string PrefetchPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Prefetch");
 
-    /// <summary>
-    /// Scans Prefetch directory for .pf files matching known cheat client names.
-    /// </summary>
-    public List<Flag> Scan()
+    public List<Flag> Scan(Action<string>? onItemScanned = null)
     {
         var flags = new List<Flag>();
         Console.WriteLine("  [*] Analyzing Prefetch files...");
@@ -34,6 +32,7 @@ public class PrefetchAnalyzer
 
             foreach (var file in prefetchFiles)
             {
+                onItemScanned?.Invoke($"Analyzing Prefetch file: {Path.GetFileName(file)}");
                 string fileName = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
                 DateTime lastWriteTime = File.GetLastWriteTimeUtc(file);
                 long fileSize = new FileInfo(file).Length;
@@ -46,37 +45,33 @@ public class PrefetchAnalyzer
                         {
                             Module = ModuleName,
                             Severity = Severity.Medium,
-                            Title = "Cheat Client Found in Prefetch History",
-                            Description = $"Prefetch file '{Path.GetFileName(file)}' matches known cheat '{cheat}'. " +
-                                          $"This indicates the application was executed on this system.",
+                            Title = "Cheat Client Found in Prefetch Execution History",
+                            Description = $"Prefetch file '{Path.GetFileName(file)}' matches known cheat client '{cheat}'. " +
+                                          $"This confirms the application was previously launched on this machine.",
                             Evidence = $"File: {file}, Last Modified: {lastWriteTime:u}, Size: {fileSize} bytes, Match: '{cheat}'"
                         });
                     }
                 }
             }
 
-            // Also check for suspicious Java-related prefetch entries
-            // that might indicate cheat client launchers
             foreach (var file in prefetchFiles)
             {
                 string fileName = Path.GetFileNameWithoutExtension(file).ToLowerInvariant();
-
-                // Check for cheat launcher executables
-                string[] suspiciousLaunchers = { "cheatengine", "processhacker", "x64dbg", "ollydbg",
+                string[] suspiciousTools = { "cheatengine", "processhacker", "x64dbg", "ollydbg",
                                                   "dnspy", "de4dot", "injector", "dllinjector" };
 
-                foreach (string launcher in suspiciousLaunchers)
+                foreach (string tool in suspiciousTools)
                 {
-                    if (fileName.Contains(launcher))
+                    if (fileName.Contains(tool))
                     {
                         flags.Add(new Flag
                         {
                             Module = ModuleName,
                             Severity = Severity.Medium,
-                            Title = "Suspicious Tool Found in Prefetch",
+                            Title = "Suspicious Tool Found in Prefetch History",
                             Description = $"Prefetch entry for '{Path.GetFileName(file)}' detected. " +
-                                          $"This tool is commonly used for game memory manipulation or reverse engineering.",
-                            Evidence = $"File: {file}, Match: '{launcher}'"
+                                          $"This tool is commonly used for memory editing or process injection.",
+                            Evidence = $"File: {file}, Match: '{tool}'"
                         });
                     }
                 }

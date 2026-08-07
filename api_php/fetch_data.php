@@ -2,7 +2,19 @@
 header('Content-Type: application/json');
 require_once 'db_config.php';
 
-$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+// Security Check: Verify API Key
+$apiKey = $_SERVER['HTTP_X_API_KEY'] ?? '';
+if (empty($apiKey) && function_exists('getallheaders')) {
+    $headers = getallheaders();
+    $apiKey = $headers['X-API-Key'] ?? $headers['x-api-key'] ?? '';
+}
+
+if (!is_string($apiKey) || strlen(AC_API_KEY) !== strlen($apiKey) || !hash_equals(AC_API_KEY, $apiKey)) {
+    http_response_code(401);
+    die(json_encode(['error' => 'Unauthorized. Invalid API Key.']));
+}
+
+$mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME, defined('DB_PORT') ? DB_PORT : 3306);
 if ($mysqli->connect_error) {
     http_response_code(500);
     die(json_encode(['error' => 'Database connection failed.']));

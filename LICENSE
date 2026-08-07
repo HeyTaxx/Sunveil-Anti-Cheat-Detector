@@ -1,16 +1,29 @@
-Copyright (c) 2026 Blue Style Development / Sunveil SMP
+PROPRIETARY END USER LICENSE AGREEMENT & TERMS OF USE (EULA)
 
-PROPRIETARY AND CONFIDENTIAL
+Copyright (c) 2026 Blue Style Development (https://bluestyle.dev) & Sunveil SMP.
+All Rights Reserved.
 
-This software is provided for private, internal use only. 
-You are granted a limited, non-exclusive, non-transferable license to use this software solely for the purpose of the Sunveil SMP network.
+1. DEVELOPER AND COPYRIGHT OWNER
+This software, source code, diagnostic modules, and accompanying web infrastructure were created, engineered, and coded exclusively by Blue Style Development (https://bluestyle.dev). All title, ownership rights, and intellectual property rights in and to the software remain strictly with Blue Style Development.
 
-Under no circumstances are you permitted to:
-1. Copy, reproduce, or distribute this software or any part of it, in any form.
-2. Modify, adapt, translate, reverse engineer, decompile, or disassemble the software.
-3. Use the software for any commercial purpose outside of the Sunveil SMP network.
-4. Sublicense, rent, lease, or lend the software to any third party.
+2. SOLE LICENSED OPERATORS
+Grant of License: A strictly limited, non-transferable, single-tenant operational license is granted exclusively to Sunveil SMP and Blue Style Development. 
+Under NO circumstances is any third-party Minecraft server, network, organization, commercial entity, or individual permitted to host, run, deploy, or operate this software or its companion backend API services on any server outside of Sunveil SMP.
 
-Any unauthorized use, reproduction, or distribution of this software, or any portion of it, will result in severe civil and criminal penalties, and will be prosecuted to the maximum extent possible under the law.
+3. PUBLIC GITHUB CODE AVAILABILITY & ANTI-PIRACY RESTRICTIONS
+This repository is published on GitHub for public code transparency, security auditability, and private personal review among authorized developers. Public availability on GitHub DOES NOT constitute an open-source license.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+YOU ARE STRICTLY PROHIBITED FROM:
+- Hosting or deploying this software on any third-party Minecraft server or network.
+- Removing, altering, or obfuscating copyright notices, branding ("Blue Style Development", "Sunveil Overwatch", "bluestyle.dev"), or EULA terms.
+- Re-branding, repackaging, or reselling this software or any part of its source code.
+- Utilizing the software or backend telemetry API for any unauthorized or commercial purpose.
+
+4. PRIVACY POLICY & TELEMETRY CONSENT
+This software performs local, read-only system integrity diagnostics on the user's personal computer to detect game modifications, injected DLLs, and cheat execution traces. Diagnostic reports containing anonymized hardware hashes (HWID), process names, and scan flags are uploaded securely to official Sunveil SMP servers (`cheat.sunveil.net`). No private personal files, personal documents, credentials, or sensitive user data are collected or transmitted.
+
+5. DISCLAIMER OF WARRANTY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL BLUE STYLE DEVELOPMENT OR SUNVEIL SMP BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF THIS SOFTWARE.
+
+Developer Website: https://bluestyle.dev
+Official Server: Sunveil SMP

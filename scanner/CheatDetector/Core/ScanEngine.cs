@@ -4,14 +4,29 @@ using CheatDetector.Modules;
 
 namespace CheatDetector.Core;
 
+public record ScanProgressInfo(
+    int StepIndex,
+    int TotalSteps,
+    double Percentage,
+    string ModuleName,
+    string StatusMessage,
+    string CurrentItem
+);
+
 /// <summary>
 /// Orchestrates all scanner modules and aggregates results into a final ScanResult.
+/// Defaults to deep forensic analysis to scan everything.
 /// </summary>
 public class ScanEngine
 {
     private readonly bool _deepScan;
 
-    public ScanEngine(bool deepScan)
+    /// <summary>
+    /// Event raised to notify UI or callers about real-time progress.
+    /// </summary>
+    public event Action<ScanProgressInfo>? OnProgress;
+
+    public ScanEngine(bool deepScan = true)
     {
         _deepScan = deepScan;
     }
@@ -23,59 +38,76 @@ public class ScanEngine
     {
         var stopwatch = Stopwatch.StartNew();
         var allFlags = new List<Flag>();
+        int totalSteps = 8;
 
-        Console.WriteLine("Initializing diagnostic sequence...");
+        Console.WriteLine("Initializing forensic diagnostic sequence...");
         Console.WriteLine("----------------------------------------------------------------");
 
-        // Module 1: Process Scanner (always runs)
-        Console.Write("[1/7] Analyzing active processes... ");
+        // Module 1: Process Scanner (weight: 10%)
+        ReportProgress(1, totalSteps, 0.0, "Active Processes & Memory", "Scanning active running processes and RAM memory strings...", "Initializing...");
+        Console.Write("[1/8] Analyzing active processes... ");
         var processScanner = new ProcessScanner();
-        allFlags.AddRange(processScanner.Scan(_deepScan));
-        Console.WriteLine($"Done.");
+        allFlags.AddRange(processScanner.Scan(_deepScan, item => ReportProgress(1, totalSteps, 5.0, "Active Processes & Memory", "Scanning active running processes and RAM...", item)));
+        Console.WriteLine("Done.");
 
-        // Module 2: Prefetch Analyzer
-        Console.Write("[2/7] Checking application execution history... ");
+        // Module 2: Prefetch Analyzer (weight: 10%)
+        ReportProgress(2, totalSteps, 12.5, "Execution History (Prefetch)", "Checking Windows application execution history (Prefetch)...", "Reading Prefetch files...");
+        Console.Write("[2/8] Checking application execution history... ");
         var prefetch = new PrefetchAnalyzer();
-        allFlags.AddRange(prefetch.Scan());
-        Console.WriteLine($"Done.");
+        allFlags.AddRange(prefetch.Scan(item => ReportProgress(2, totalSteps, 20.0, "Execution History (Prefetch)", "Inspecting Windows Prefetch history...", item)));
+        Console.WriteLine("Done.");
 
-        // Module 3: UserAssist Reader
-        Console.Write("[3/7] Verifying registry explorer history... ");
+        // Module 3: UserAssist Reader (weight: 10%)
+        ReportProgress(3, totalSteps, 25.0, "Explorer Registry (UserAssist)", "Reading Windows Explorer UserAssist registry entries...", "Reading UserAssist keys...");
+        Console.Write("[3/8] Verifying registry explorer history... ");
         var userAssist = new UserAssistReader();
-        allFlags.AddRange(userAssist.Scan());
-        Console.WriteLine($"Done.");
+        allFlags.AddRange(userAssist.Scan(item => ReportProgress(3, totalSteps, 32.5, "Explorer Registry (UserAssist)", "Reading UserAssist registry keys...", item)));
+        Console.WriteLine("Done.");
 
-        // Module 4: AppCompatCache Reader
-        Console.Write("[4/7] Validating compatibility cache... ");
+        // Module 4: Evasion & Deletion Forensics (weight: 15%)
+        ReportProgress(4, totalSteps, 37.5, "Anti-Evasion & Deletion Forensics", "Checking for recently deleted cheat clients and evasion attempts...", "Checking deletion artifacts...");
+        Console.Write("[4/8] Running anti-evasion & deletion forensics... ");
+        var evasionScanner = new EvasionDetector();
+        allFlags.AddRange(evasionScanner.Scan(item => ReportProgress(4, totalSteps, 45.0, "Anti-Evasion & Deletion Forensics", "Analyzing deleted execution artifacts...", item)));
+        Console.WriteLine("Done.");
+
+        // Module 5: AppCompatCache Reader (weight: 10%)
+        ReportProgress(5, totalSteps, 50.0, "Compatibility Cache (ShimCache)", "Validating Windows Compatibility ShimCache...", "Parsing ShimCache...");
+        Console.Write("[5/8] Validating compatibility cache... ");
         var appCompat = new AppCompatCacheReader();
-        allFlags.AddRange(appCompat.Scan());
-        Console.WriteLine($"Done.");
+        allFlags.AddRange(appCompat.Scan(item => ReportProgress(5, totalSteps, 57.5, "Compatibility Cache (ShimCache)", "Parsing Compatibility ShimCache...", item)));
+        Console.WriteLine("Done.");
 
-        // Module 5: File System Scanner
-        Console.Write("[5/7] Scanning local application data... ");
+        // Module 6: File System & Drive Scanner (weight: 30%)
+        ReportProgress(6, totalSteps, 62.5, "Filesystem & Drive Search", "Scanning Minecraft directories, Temp, Downloads & Drive storage...", "Enumerating drives...");
+        Console.Write("[6/8] Scanning local application data & drives... ");
         var fileSystem = new FileSystemScanner();
-        allFlags.AddRange(fileSystem.Scan());
-        Console.WriteLine($"Done.");
+        allFlags.AddRange(fileSystem.Scan(item => ReportProgress(6, totalSteps, 78.0, "Filesystem & Drive Search", "Scanning local application data & drives...", item)));
+        Console.WriteLine("Done.");
 
-        // Module 6: JVM Argument Scanner (deep scan only)
+        // Module 7: JVM Argument Scanner (weight: 7.5%)
         if (_deepScan)
         {
-            Console.Write("[6/7] Inspecting JVM parameters... ");
+            ReportProgress(7, totalSteps, 87.5, "Java Runtime Parameters", "Inspecting Java Virtual Machine parameters & agents...", "Checking JVM arguments...");
+            Console.Write("[7/8] Inspecting JVM parameters... ");
             var jvmScanner = new JvmArgumentScanner();
-            allFlags.AddRange(jvmScanner.Scan());
-            Console.WriteLine($"Done.");
+            allFlags.AddRange(jvmScanner.Scan(item => ReportProgress(7, totalSteps, 92.5, "Java Runtime Parameters", "Inspecting Java VM parameters...", item)));
+            Console.WriteLine("Done.");
 
-            // Module 7: DLL Injection Scanner (deep scan only)
-            Console.Write("[7/7] Verifying loaded modules... ");
+            // Module 8: DLL Injection Scanner (weight: 5%)
+            ReportProgress(8, totalSteps, 95.0, "Loaded Modules & Injections", "Verifying loaded DLL modules and native injection attempts...", "Checking DLL modules...");
+            Console.Write("[8/8] Verifying loaded modules... ");
             var dllScanner = new DllInjectionScanner();
-            allFlags.AddRange(dllScanner.Scan());
-            Console.WriteLine($"Done.");
+            allFlags.AddRange(dllScanner.Scan(item => ReportProgress(8, totalSteps, 98.0, "Loaded Modules & Injections", "Verifying loaded DLL modules...", item)));
+            Console.WriteLine("Done.");
         }
         else
         {
-            Console.WriteLine("[6/7] Inspecting JVM parameters... Skipped (Standard Mode)");
-            Console.WriteLine("[7/7] Verifying loaded modules... Skipped (Standard Mode)");
+            Console.WriteLine("[7/8] Inspecting JVM parameters... Skipped");
+            Console.WriteLine("[8/8] Verifying loaded modules... Skipped");
         }
+
+        ReportProgress(8, totalSteps, 100.0, "Complete", "Diagnostic scan complete. Generating final report...", "Scan Finished.");
 
         stopwatch.Stop();
 
@@ -111,6 +143,11 @@ public class ScanEngine
         return result;
     }
 
+    private void ReportProgress(int step, int total, double pct, string module, string msg, string currentItem)
+    {
+        OnProgress?.Invoke(new ScanProgressInfo(step, total, pct, module, msg, currentItem));
+    }
+
     private static string DetermineVerdict(List<Flag> flags)
     {
         int high = flags.Count(f => f.Severity == Severity.High);
@@ -125,9 +162,17 @@ public class ScanEngine
     private static string GenerateReportId()
     {
         string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        var random = new Random();
-        string code = new string(Enumerable.Range(0, 6).Select(_ => chars[random.Next(chars.Length)]).ToArray());
-        return $"ACD-{DateTime.UtcNow:yyyy}-{code}";
+        var bytes = new byte[6];
+        using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(bytes);
+        }
+        char[] code = new char[6];
+        for (int i = 0; i < 6; i++)
+        {
+            code[i] = chars[bytes[i] % chars.Length];
+        }
+        return $"ACD-{DateTime.UtcNow:yyyy}-{new string(code)}";
     }
 
     private static SystemInfo CollectSystemInfo()
@@ -140,12 +185,10 @@ public class ScanEngine
             DotNetVersion = Environment.Version.ToString()
         };
 
-        // Generate HWID from machine name + username hash
         using var sha = System.Security.Cryptography.SHA256.Create();
         var bytes = System.Text.Encoding.UTF8.GetBytes($"{info.Hostname}|{info.Username}|{Environment.ProcessorCount}");
         info.HardwareId = Convert.ToHexString(sha.ComputeHash(bytes))[..16];
 
-        // Try to get CPU info via WMI
         try
         {
             using var searcher = new System.Management.ManagementObjectSearcher("SELECT Name FROM Win32_Processor");
@@ -158,7 +201,6 @@ public class ScanEngine
         }
         catch { info.CpuName = "Unknown"; }
 
-        // RAM
         try
         {
             using var searcher = new System.Management.ManagementObjectSearcher("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem");

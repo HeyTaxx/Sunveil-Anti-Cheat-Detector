@@ -1,0 +1,56 @@
+<Window x:Class="CheatDetector.UI.IntroSplashScreen"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Sunveil Overwatch Intro" 
+        Height="360" Width="580"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        Topmost="True">
+
+    <Border CornerRadius="18" Background="#060609" BorderBrush="#1F2937" BorderThickness="1.5">
+        <Border.Effect>
+            <DropShadowEffect Color="#10B981" BlurRadius="40" ShadowDepth="0" Opacity="0.35"/>
+        </Border.Effect>
+
+        <Grid Margin="32">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Center Logo & Branding -->
+            <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <!-- Glowing Shield Icon -->
+                <Border Width="72" Height="72" CornerRadius="16" HorizontalAlignment="Center" Margin="0,0,0,20">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#10B981" Offset="0.0"/>
+                            <GradientStop Color="#3B82F6" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock Text="🛡️" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+
+                <!-- Title -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,6">
+                    <TextBlock Text="SUNVEIL " FontSize="28" FontWeight="ExtraBold" Foreground="#FFFFFF"/>
+                    <TextBlock Text="OVERWATCH" FontSize="28" FontWeight="ExtraBold" Foreground="#10B981"/>
+                </StackPanel>
+
+                <!-- Subtitle -->
+                <TextBlock Text="System Diagnostic &amp; Anti-Cheat Console" FontSize="14" Foreground="#9CA3AF" HorizontalAlignment="Center" Margin="0,0,0,16"/>
+
+                <!-- Pulse Loading Line -->
+                <ProgressBar Height="4" Width="240" IsIndeterminate="True" Background="#0F0F17" Foreground="#10B981" BorderThickness="0"/>
+            </StackPanel>
+
+            <!-- Footer Developer Branding -->
+            <StackPanel Grid.Row="1" HorizontalAlignment="Center" Margin="0,16,0,0">
+                <TextBlock Text="Developed by Blue Style Development • bluestyle.dev" FontSize="12" Foreground="#6B7280" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

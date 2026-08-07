@@ -1,16 +1,44 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Auth Check
+    const token = sessionStorage.getItem('admin_token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    // Set up Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+        });
+    }
+
     const urlParams = new URLSearchParams(window.location.search);
     const reportId = urlParams.get('id');
 
-    if (!reportId) {
+    if (!reportId || !/^[A-Za-z0-9\-]{1,64}$/.test(reportId)) {
         showError();
         return;
     }
 
     fetchReport(reportId);
 
+    function handleAuthError(res) {
+        if (res.status === 401) {
+            sessionStorage.removeItem('admin_token');
+            window.location.href = 'login.html';
+            throw new Error('Session expired or unauthorised access.');
+        }
+        return res;
+    }
+
     function fetchReport(id) {
-        fetch(`/api/reports/${id}`)
+        fetch(`/api/reports/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(handleAuthError)
             .then(res => {
                 if (!res.ok) throw new Error('Report not found');
                 return res.json();
@@ -31,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function showError() {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('errorState').style.display = 'block';
+        document.getElementById('reportContent').style.display = 'none';
     }
 
     function renderReport(report) {
@@ -94,7 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!report.flags || report.flags.length === 0) {
             noFlagsState.style.display = 'block';
+            flagsList.innerHTML = '';
         } else {
+            noFlagsState.style.display = 'none';
             const sevOrder = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
             const sortedFlags = [...report.flags].sort((a, b) =>
                 (sevOrder[b.severity?.toUpperCase()] || 0) - (sevOrder[a.severity?.toUpperCase()] || 0)

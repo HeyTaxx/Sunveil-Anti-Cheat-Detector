@@ -23,7 +23,16 @@ function init() {
 }
 
 function saveDb() {
-    fs.writeFileSync(DB_PATH, JSON.stringify(reports, null, 2), 'utf8');
+    // Atomic write: write to temp file first, then rename to prevent corruption
+    const tmpPath = DB_PATH + '.tmp';
+    try {
+        fs.writeFileSync(tmpPath, JSON.stringify(reports, null, 2), 'utf8');
+        fs.renameSync(tmpPath, DB_PATH);
+    } catch (err) {
+        // Cleanup temp file on failure
+        try { fs.unlinkSync(tmpPath); } catch { }
+        throw err;
+    }
 }
 
 function insertReport(report) {

@@ -1,3 +1,4 @@
+using System.IO;
 using Microsoft.Win32;
 using CheatDetector.Models;
 using CheatDetector.Data;
@@ -6,8 +7,6 @@ namespace CheatDetector.Modules;
 
 /// <summary>
 /// Reads the Windows UserAssist registry entries to detect GUI-launched cheat applications.
-/// UserAssist tracks applications launched via Windows Explorer and stores them
-/// with ROT13-obfuscated names.
 /// </summary>
 public class UserAssistReader
 {
@@ -19,7 +18,7 @@ public class UserAssistReader
     };
     private const string UserAssistBasePath = @"Software\Microsoft\Windows\CurrentVersion\Explorer\UserAssist";
 
-    public List<Flag> Scan()
+    public List<Flag> Scan(Action<string>? onItemScanned = null)
     {
         var flags = new List<Flag>();
         Console.WriteLine("  [*] Reading UserAssist registry...");
@@ -32,10 +31,12 @@ public class UserAssistReader
                 using var countKey = hkcu.OpenSubKey(keyPath);
                 if (countKey == null) continue;
                 string[] valueNames = countKey.GetValueNames();
-                Console.WriteLine($"  [*] Found {valueNames.Length} UserAssist entries in {guid[..8]}...");
+
                 foreach (string encodedName in valueNames)
                 {
                     string decodedName = DecodeRot13(encodedName).ToLowerInvariant();
+                    onItemScanned?.Invoke($"UserAssist decoded path: {decodedName}");
+
                     foreach (string cheat in CheatSignatures.KnownClients)
                     {
                         if (decodedName.Contains(cheat))
@@ -45,7 +46,7 @@ public class UserAssistReader
                             flags.Add(new Flag
                             {
                                 Module = ModuleName, Severity = Severity.Medium,
-                                Title = "Cheat Client in UserAssist History",
+                                Title = "Cheat Client in UserAssist Registry History",
                                 Description = $"UserAssist entry '{decodedName}' matches cheat '{cheat}'. {runInfo}",
                                 Evidence = $"Decoded: {decodedName}, ROT13: {encodedName}, {runInfo}"
                             });
@@ -60,7 +61,7 @@ public class UserAssistReader
                             flags.Add(new Flag
                             {
                                 Module = ModuleName, Severity = Severity.Medium,
-                                Title = "Suspicious Tool in UserAssist",
+                                Title = "Suspicious Tool in UserAssist History",
                                 Description = $"UserAssist entry for '{tool}' detected. {ParseUserAssistData(data)}",
                                 Evidence = $"Decoded: {decodedName}"
                             });
