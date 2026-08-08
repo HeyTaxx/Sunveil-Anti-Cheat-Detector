@@ -165,7 +165,14 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════
+//  HEALTHCHECK ROUTE (Public for Railway/Platform monitoring)
+// ═══════════════════════════════════════════
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// ═══════════════════════════════════════════
 //  API ROUTES
 // ═══════════════════════════════════════════════
 
