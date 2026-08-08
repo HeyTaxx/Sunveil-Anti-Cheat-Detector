@@ -25,7 +25,7 @@ public partial class MainWindow : Window
     private NotifyIcon? _notifyIcon;
     private bool _isScanning = false;
 
-    public MainWindow(string apiUrl = "https://cheat.sunveil.net", string apiKey = "CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_32_CHARS")
+    public MainWindow(string apiUrl = "https://anticheat.sunveil.net", string apiKey = "CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_32_CHARS")
     {
         InitializeComponent();
         _apiUrl = apiUrl;

@@ -36,7 +36,7 @@ class Program
             e.SetObserved();
         };
 
-        string apiUrl = GetArgValue(args, "--api-url") ?? "https://cheat.sunveil.net";
+        string apiUrl = GetArgValue(args, "--api-url") ?? "https://anticheat.sunveil.net";
         string apiKey = GetArgValue(args, "--api-key") ?? "CHANGE_THIS_TO_A_SECURE_RANDOM_STRING_32_CHARS";
 
         bool isCliMode = args.Contains("--cli") || args.Contains("--dry-run") || args.Contains("--help") || args.Contains("-h");

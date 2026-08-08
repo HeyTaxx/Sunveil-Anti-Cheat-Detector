@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using CheatDetector.Models;
+using CheatDetector.Core;
 
 namespace CheatDetector.Network;
 
@@ -25,10 +26,34 @@ public class ApiClient
     /// </summary>
     public async Task<string?> UploadReportAsync(ScanResult result, string apiKey)
     {
-        Console.WriteLine($"  [*] Uploading report to {_baseUrl}/upload.php...");
+        Console.WriteLine($"  [*] Uploading telemetry report to {_baseUrl}...");
+
+        // 1. Try primary Node.js Express API (/api/reports)
         try
         {
-            // Structure payload for PHP backend
+            string jsonNode = ReportGenerator.ToJson(result);
+            using var contentNode = new StringContent(jsonNode, Encoding.UTF8, "application/json");
+            
+            using var request = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/reports");
+            request.Content = contentNode;
+
+            var responseNode = await _http.SendAsync(request);
+            if (responseNode.IsSuccessStatusCode)
+            {
+                var responseBody = await responseNode.Content.ReadFromJsonAsync<UploadResponse>();
+                string reportUrl = responseBody?.ReportUrl ?? $"{_baseUrl}/report.html?id={result.ReportId}";
+                Console.WriteLine($"  [+] Upload successful! Telemetry stored securely.");
+                return reportUrl;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"  [!] Express API upload skipped: {ex.Message}. Trying PHP fallback...");
+        }
+
+        // 2. Fallback to PHP backend (/upload.php)
+        try
+        {
             var payload = new
             {
                 player_name = result.SystemInfo.Username,
@@ -36,29 +61,30 @@ public class ApiClient
                 flags = result.Flags
             };
 
-            string json = JsonSerializer.Serialize(payload, new JsonSerializerOptions
+            string jsonPhp = JsonSerializer.Serialize(payload, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
 
-            _http.DefaultRequestHeaders.Clear();
-            _http.DefaultRequestHeaders.Add("X-API-Key", apiKey);
+            using var contentPhp = new StringContent(jsonPhp, Encoding.UTF8, "application/json");
+            using var requestPhp = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/upload.php");
+            requestPhp.Headers.Add("X-API-Key", apiKey);
+            requestPhp.Content = contentPhp;
 
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await _http.PostAsync($"{_baseUrl}/upload.php", content);
+            var responsePhp = await _http.SendAsync(requestPhp);
 
-            if (response.IsSuccessStatusCode)
+            if (responsePhp.IsSuccessStatusCode)
             {
-                var responseBody = await response.Content.ReadFromJsonAsync<UploadResponse>();
-                string reportId = responseBody?.ReportId ?? result.ReportId;
-                string reportUrl = $"{_baseUrl}/admin_v2.html"; // The dashboard URL
-                Console.WriteLine($"  [+] Upload successful! Telemetry stored securely.");
+                var responseBody = await responsePhp.Content.ReadFromJsonAsync<UploadResponse>();
+                string reportId = responseBody?.ReportId ?? responseBody?.ReportIdPhp ?? result.ReportId;
+                string reportUrl = $"{_baseUrl}/report.html?id={reportId}";
+                Console.WriteLine($"  [+] Upload successful via PHP backend!");
                 return reportUrl;
             }
             else
             {
-                Console.WriteLine($"  [!] Upload failed: HTTP {(int)response.StatusCode}");
-                string body = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"  [!] Upload failed: HTTP {(int)responsePhp.StatusCode}");
+                string body = await responsePhp.Content.ReadAsStringAsync();
                 Console.WriteLine($"  [!] Response: {body}");
                 return null;
             }
@@ -78,8 +104,16 @@ public class ApiClient
 
     private class UploadResponse
     {
-        public string ReportUrl { get; set; } = "";
-        public string ReportId { get; set; } = "";
+        [System.Text.Json.Serialization.JsonPropertyName("reportUrl")]
+        public string? ReportUrl { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("reportId")]
+        public string? ReportId { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("report_id")]
+        public string? ReportIdPhp { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("success")]
         public bool Success { get; set; }
     }
 }

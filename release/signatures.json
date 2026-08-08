@@ -1,0 +1,37 @@
+{
+  "version": "1.1.0",
+  "description": "Sunveil SMP Anti-Cheat — Signature Database (package names + memory strings)",
+  "jarPackages": [
+    { "package": "baritone/api",                  "label": "Baritone API",          "severity": "HIGH",   "description": "Baritone pathfinding cheat — automated movement and mining" },
+    { "package": "baritone/process",               "label": "Baritone Process",       "severity": "HIGH",   "description": "Baritone process controller" },
+    { "package": "baritone/cache",                 "label": "Baritone Cache",         "severity": "HIGH",   "description": "Baritone world cache — stores exploration data for cheating" },
+    { "package": "net/ccbluex/liquidbounce",       "label": "LiquidBounce",           "severity": "HIGH",   "description": "LiquidBounce open-source cheat client" },
+    { "package": "net/wurstclient",                "label": "Wurst Client",           "severity": "HIGH",   "description": "Wurst cheat client" },
+    { "package": "meteorclient",                   "label": "Meteor Client",          "severity": "HIGH",   "description": "Meteor Client — popular Fabric-based cheat" },
+    { "package": "me/rigamortis/salhack",          "label": "SalHack",                "severity": "HIGH",   "description": "SalHack cheat client" },
+    { "package": "com/lukflug/panelstudio",        "label": "PanelStudio GUI",        "severity": "HIGH",   "description": "PanelStudio GUI framework — used by Vape and other ghost clients" },
+    { "package": "at/favre/lib/crypto",            "label": "Favre Crypto Lib",       "severity": "MEDIUM", "description": "Crypto library (at.favre.lib.crypto) used by obfuscated cheat clients for license validation" },
+    { "package": "cn/stars",                       "label": "Stars Client (CN)",      "severity": "HIGH",   "description": "Chinese-origin ghost client package" },
+    { "package": "com/georgenadejde/killaura",     "label": "KillAura Module",        "severity": "HIGH",   "description": "Standalone KillAura cheat module" },
+    { "package": "optifine/shadersmod",            "label": "ShadersMod Spoof",       "severity": "MEDIUM", "description": "Cheat client disguised as ShadersMod" },
+    { "package": "club/minnced/discord/rpc",       "label": "DiscordRPC Inject",      "severity": "LOW",    "description": "Discord RPC injection used by some cheat clients" },
+    { "package": "net/minecraft/src/hack",         "label": "Legacy Hack Base",       "severity": "HIGH",   "description": "Legacy hacked Minecraft client base package" },
+    { "package": "net/minecraftforge/fml/hack",    "label": "Forge Hack Module",      "severity": "HIGH",   "description": "Hack module injected via Forge FML" }
+  ],
+  "fileHashSignatures": [],
+  "additionalMemoryStrings": [
+    "baritone.api.pathing",
+    "baritone.settings",
+    "baritone.process.elytrap",
+    "baritoneapi.getprovider",
+    "baritone.cache.worlddata",
+    "ibaritone",
+    "pathingbehavior",
+    "baritone.utils.helper",
+    "panelstudio.component",
+    "liquidbounce.features.module",
+    "wurstclient.hack",
+    "meteorclient.systems",
+    "salhack.module"
+  ]
+}
